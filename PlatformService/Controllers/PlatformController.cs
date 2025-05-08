@@ -6,6 +6,7 @@ using PlatformService.Dtos;
 using PlatformService.Models;
 using PlatformService.SyncDataServices.Http;
 using System;
+using PlatformService.AsyncDataServices;
 
 namespace PlatformService.Controllers
 {
@@ -16,15 +17,18 @@ namespace PlatformService.Controllers
         private readonly IPlatformRepo _repository;
         private readonly IMapper _mapper;
         private readonly ICommandDataClient _commandDataClient;
+        private readonly IMessageBusClient _messageBusClient;
 
         public PlatformController(
             IPlatformRepo repository, 
             IMapper mapper,
-            ICommandDataClient commandDataClient)
+            ICommandDataClient commandDataClient,
+            IMessageBusClient messageBusClient)
         {
             _repository = repository;
             _mapper = mapper;
             _commandDataClient = commandDataClient;
+            _messageBusClient = messageBusClient;
         }
 
         [HttpGet]
@@ -55,7 +59,7 @@ namespace PlatformService.Controllers
             _repository.SaveChanges();
 
             var PlatformReadDto = _mapper.Map<PlatformReadDto>(platformModel);
-
+            //Send Sync Message
             try
             {
                 await _commandDataClient.SendPlatformToCommand(PlatformReadDto);
@@ -63,6 +67,19 @@ namespace PlatformService.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"--> Could not send synchronously: {ex.Message}");
+            }
+
+            //Send Async Message
+
+            try
+            {
+                var platformPublishedDto = _mapper.Map<PlatformPublishedDto>(PlatformReadDto);
+                platformPublishedDto.Event = "Platform_Published";
+                _messageBusClient.PublishNewPlatform(platformPublishedDto);
+            }
+            catch (System.Exception exception)
+            {
+                System.Console.WriteLine($"--> Could not sent asynchronously: {exception.Message}");
             }
 
             return CreatedAtRoute(nameof(GetPlatformById), new {Id = PlatformReadDto.Id},PlatformReadDto);
