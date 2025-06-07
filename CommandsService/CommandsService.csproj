@@ -24,5 +24,8 @@
     <PackageReference Include="Scalar.AspNetCore" Version="2.1.17" />
     <PackageReference Include="RabbitMQ.Client" Version="5.2.0" />
   </ItemGroup>
+  <ItemGroup>
+    <Protobuf Include="Protos\platforms.proto" GrpcService="Client" />
+  </ItemGroup>
 
 </Project>
