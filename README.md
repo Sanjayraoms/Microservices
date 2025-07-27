@@ -24,5 +24,25 @@ Components used in Platform service
 I am using Fanout exchange type, where message is delivered to all queues that are bound to the exchange. It ignores the routing keys as we are doing broadcast messaging here.
 <img width="1853" height="742" alt="image" src="https://github.com/user-attachments/assets/b50686dd-8281-4683-b123-cbe3b16253b7" />
 
+CommandService Architecture
+<img width="1895" height="1053" alt="image" src="https://github.com/user-attachments/assets/6b99f330-db6f-41b2-bec1-b8c9e4ed2c39" />
+
+Command service API retrieves all the commands associated to given platform id, and gets specific command for the given platformId and CommandId. It also creates command for the given platform Id only if platform exists.
+Components used in commands service
+1. Models, DbContext, Repository and DTOs remains same as Platform service.
+2. In command service, we have MessageBusSubscriber service running as background service. It is registered as a hosted service in program.cs as builder.Services.AddHostedService<MessageBusSubscriber>();. Code for initializing the Message subscriber is as below, which is similar to platform service
+<img width="1526" height="635" alt="image" src="https://github.com/user-attachments/assets/5057cef4-2478-439c-aac2-8d619b14502f" />
+3. As message bus service is implementing Background service, it needs to implement ExecuteAsync function. The MessageBusSubscriber is continuously liatening to the channel and once the event is received EventProcessor processes the events from here
+<img width="848" height="435" alt="image" src="https://github.com/user-attachments/assets/ba3e4c4e-b6d9-4dea-a245-c93b60e7b64a" />
+4. Event processor creates the platform in Commad service side
+<img width="1198" height="662" alt="image" src="https://github.com/user-attachments/assets/c4608a17-ccd4-4459-81e9-060a2eb58315" />
+
+...to be continued to explain docker and kubernetes orchestration
+
+
+
+
+
+
 
 
